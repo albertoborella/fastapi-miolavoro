@@ -1,5 +1,8 @@
 from typing import Annotated
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from sqlmodel import Field, SQLModel, Session, create_engine, select
 
 class Company(SQLModel, table=True):
@@ -46,32 +49,67 @@ app.version = '0.0.1'
 
 app = FastAPI()
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
+
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
 
 
 # Endpoints
-@app.get('/trabajos/', tags=['Trabajos'])
+@app.get('/empresas/', tags=['Empresas'])
+def all_companies(session: SessionDep) -> list[Company]:
+    companies = session.exec(select(Company)).all()
+    return companies
+
+@app.get('/empresas', response_class=HTMLResponse)
+def companies(request: Request, session: SessionDep):
+    companies = session.exec(select(Company)).all()
+    return templates.TemplateResponse(request=request, name='register_companies.html', context={'companies': companies})
+
+@app.post('/empresas/', tags=['Empresas'])
+def create_company(company: Company, session: SessionDep) -> Company:
+    session.add(company)
+    session.commit()
+    session.refresh(company)
+    return company
+
+@app.delete('/empresas/{company_id}', tags=['Empresas'])
+def delete_company(company_id: int, session: SessionDep):
+    company = session.get(Company, company_id)
+    if not company:
+        raise HTTPException(status_code=404, detail='Empresa no registrada')
+    session.delete(company)
+    session.commit()
+    return {'ok': 'Registro de empresa eliminada'}
+
+@app.get('/jobs/', tags=['Trabajos'])
 def all_jobs(session: SessionDep) -> list[Job]:
     works = session.exec(select(Job)).all()
     return works
 
-@app.post('/trabajos/', tags=['Trabajos'])
+@app.get('/trabajos', response_class=HTMLResponse)
+def trabajos(request: Request, session: SessionDep):
+    trabajos = session.exec(select(Job)).all()
+    return templates.TemplateResponse(request=request, name='jobs_list.html', context={'trabajos': trabajos})
+
+@app.post('/jobs/', tags=['Trabajos'])
 def create_job(job: Job, session: SessionDep) -> Job:
     session.add(job)
     session.commit()
     session.refresh(job)
     return job
 
-@app.get('/trabajos/{job_id}', tags=['Trabajos'])
+@app.get('/jobs/{job_id}', tags=['Trabajos'])
 def read_job(job_id: int, session: SessionDep) -> Job:
     job = session.get(Job, job_id)
     if not job:
         raise HTTPException(status_code=404, detail='Registro de trabajo no encontrado')
     return job
 
-@app.patch('/trabajos/{trabajo_id}', tags=['Trabajos'])
+@app.patch('/jobs/{trabajo_id}', tags=['Trabajos'])
 def update_job(trabajo_id: int, trabajo: Job, session: SessionDep):
     jobo_db = session.get(Job, trabajo_id)
     if not jobo_db:
@@ -83,7 +121,7 @@ def update_job(trabajo_id: int, trabajo: Job, session: SessionDep):
     session.refresh(jobo_db)
     return jobo_db
 
-@app.delete('/trabajos/{job_id}', tags=['Trabajos'])
+@app.delete('/jobs/{job_id}', tags=['Trabajos'])
 def delete_job(job_id: int, session: SessionDep):
     job = session.get(Job, job_id)
     if not job:
@@ -95,6 +133,9 @@ def delete_job(job_id: int, session: SessionDep):
 # @app.get('/trabajos/{codigo}', tags=['Trabajos'])
 # def work_for_empresa(codigo: str):
 #     return list(filter(lambda cod: cod[codigo] == codigo, Job))
+
+
+    
 
 
 

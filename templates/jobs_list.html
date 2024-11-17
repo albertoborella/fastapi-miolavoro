@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>trabajos</title>
+</head>
+<body>
+    <h2>Trabajos realizados</h2>
+    {% for trabajo in trabajos %}
+        <li>{{trabajo.date}}</li>
+    {% endfor%}
+</body>
+</html>
