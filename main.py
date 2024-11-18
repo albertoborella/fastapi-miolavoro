@@ -23,10 +23,10 @@ class Job(JobBase, table=True):
     tramsit_permits: int | None = Field(default=0)
     inspection_areas: str | None = Field(default='')
     water_samples: str | None = Field(default='')
-    mip_control: str | None = Field(default='')
+    mip_control: bool | None = Field(default='')
     plan_creha: bool | None
     meeting_managers: str | None = Field(default='')
-    audit_haccp: str | None = Field(default='')
+    audit_haccp: bool | None = Field(default='')
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -59,24 +59,19 @@ def on_startup():
 
 
 # Endpoints
-@app.get('/empresas/', tags=['Empresas'])
+@app.get('/companies/', tags=['Empresas'])
 def all_companies(session: SessionDep) -> list[Company]:
     companies = session.exec(select(Company)).all()
     return companies
 
-@app.get('/empresas', response_class=HTMLResponse)
-def companies(request: Request, session: SessionDep):
-    companies = session.exec(select(Company)).all()
-    return templates.TemplateResponse(request=request, name='register_companies.html', context={'companies': companies})
-
-@app.post('/empresas/', tags=['Empresas'])
+@app.post('/companies/', tags=['Empresas'])
 def create_company(company: Company, session: SessionDep) -> Company:
     session.add(company)
     session.commit()
     session.refresh(company)
     return company
 
-@app.delete('/empresas/{company_id}', tags=['Empresas'])
+@app.delete('/companies/{company_id}', tags=['Empresas'])
 def delete_company(company_id: int, session: SessionDep):
     company = session.get(Company, company_id)
     if not company:
@@ -89,11 +84,6 @@ def delete_company(company_id: int, session: SessionDep):
 def all_jobs(session: SessionDep) -> list[Job]:
     works = session.exec(select(Job)).all()
     return works
-
-@app.get('/trabajos', response_class=HTMLResponse)
-def trabajos(request: Request, session: SessionDep):
-    trabajos = session.exec(select(Job)).all()
-    return templates.TemplateResponse(request=request, name='jobs_list.html', context={'trabajos': trabajos})
 
 @app.post('/jobs/', tags=['Trabajos'])
 def create_job(job: Job, session: SessionDep) -> Job:
@@ -129,6 +119,17 @@ def delete_job(job_id: int, session: SessionDep):
     session.delete(job)
     session.commit()
     return {'ok': 'Registro de trabajo eliminado'}
+
+# Vistas para templates
+@app.get('/empresas', response_class=HTMLResponse)
+def empresa(request: Request, session: SessionDep):
+    empresas = session.exec(select(Company)).all()
+    return templates.TemplateResponse(request=request, name='companies_list.html', context={'empresas': empresas})
+
+@app.get('/trabajos', response_class=HTMLResponse)
+def trabajos(request: Request, session: SessionDep):
+    trabajos = session.exec(select(Job)).all()
+    return templates.TemplateResponse(request=request, name='jobs_list.html', context={'trabajos': trabajos})
 
 # @app.get('/trabajos/{codigo}', tags=['Trabajos'])
 # def work_for_empresa(codigo: str):

@@ -6,9 +6,53 @@
     <title>trabajos</title>
 </head>
 <body>
-    <h2>Trabajos realizados</h2>
+    <style>
+        table{
+            margin: auto;
+            width:90%;
+            border: 1px, solid, rgb(221, 221, 219);
+        }
+        th{
+            border: 1px, solid, rgb(221, 221, 219);
+        }
+        td{
+            padding-left: 10px;
+        }
+        h2{
+            text-align: center;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h2>Registro de tareas</h2>
+    <table>
+    <tr>
+        <th>Código</th>
+        <th>Fecha</th>
+        <th>Exp.</th>
+        <th>P.T.</th>
+        <th>Inspec.</th>
+        <th>Agua</th>
+        <th>MIP</th>
+        <th>CREHA</th>
+        <th>HACCP</th>
+        <th>Reuniones</th>
+    </tr>
     {% for trabajo in trabajos %}
-        <li>{{trabajo.date}}</li>
-    {% endfor%}
+    <tr>
+        <td>{{trabajo.internal_code}}</td>
+        <td>{{trabajo.date}}</td>
+        <td>{{trabajo.exports}}</td>
+        <td>{{trabajo.tramsit_permits}}</td>
+        <td>{{trabajo.inspection_areas}}</td>
+        <td>{{trabajo.water_samples}}</td>
+        <td>{{trabajo.mip_control}}</td>
+        <td>{{trabajo.plan_creha}}</td>
+        <td>{{trabajo.audit_haccp}}</td>
+        <td>{{trabajo.meeting_managers}}</td>
+    </tr>
+    {% endfor %}
+    </table>
 </body>
 </html>
